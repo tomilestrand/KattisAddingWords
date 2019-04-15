@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Kattis.IO;
 
 namespace AddingWords
 {
@@ -10,65 +9,61 @@ namespace AddingWords
     {
         static void Main(string[] args)
         {
-            var definitions = new List<Definition>();
-            var scanner = new Scanner();
+            var definitions = new Dictionary<string, int>();
 
-            string action;
-            string key;
-            int value;
+            string input;
+            string[] inputs;
+            int value, i;
             List<string> calc = new List<string>();
-            List<int?> values = new List<int?>();
+            List<int> values = new List<int>();
             List<char> operands = new List<char>();
-            Definition temp;
 
-            while (scanner.HasNext())
+            while ((input = Console.ReadLine()) != null)
             {
-                action = scanner.Next();
-                if (action == "clear")
+                inputs = input.Split(' ');
+                if (inputs[0] == "clear")
                 {
                     definitions.Clear();
                 }
                 else
                 {
-                    if (action == "def")
+                    if (inputs[0] == "def")
                     {
-                        key = scanner.Next();
-                        value = scanner.NextInt();
-                        temp = definitions.SingleOrDefault(q => q.Key == key);
-                        if (temp == null)
+                        value = int.Parse(inputs[2]);
+                        if (!definitions.ContainsKey(inputs[1]))
                         {
-                            definitions.Add(new Definition(value, key));
+                            definitions.Add(inputs[1], value);
                         }
                         else
                         {
-                            temp.Value = value;
+                            definitions[inputs[1]] = value;
                         }
 
                     }
                     else
                     {
+                        i = 1;
                         do
                         {
-                            calc.Add(scanner.Next());
+                            calc.Add(inputs[i++]);
 
                         } while (calc.Last() != "=");
-                        for (int i = 0; i < calc.Count; i++)
+                        for (int j = 0; j < calc.Count; j++)
                         {
-                            if (i % 2 == 0)
+                            if (j % 2 == 0)
                             {
-                                temp = definitions.SingleOrDefault(q => q.Key == calc[i]);
-                                if (temp != null)
+                                if (definitions.ContainsKey(calc[j]))
                                 {
-                                    values.Add(temp.Value);
+                                    values.Add(definitions[calc[j]]);
                                 }
                                 else
                                 {
-                                    values.Add(null);
+                                    values.Add(-1001);
                                 }
                             }
                             else
                             {
-                                operands.Add(calc[i][0]);
+                                operands.Add(calc[j][0]);
                             }
                         }
                         Console.WriteLine(MakeOutputString(values, operands, definitions, calc));
@@ -80,14 +75,13 @@ namespace AddingWords
             }
         }
 
-        private static string MakeOutputString(List<int?> values, List<char> operands, List<Definition> definitions, List<string> calc)
+        private static string MakeOutputString(List<int> values, List<char> operands, Dictionary<string, int> definitions, List<string> calc)
         {
             StringBuilder builder = new StringBuilder();
-            string returnKey = null;
-            Definition temp;
-            if (!values.Any(q => q == null))
+            string returnKey = "unknown";
+            if (!values.Any(q => q == -1001))
             {
-                int? returnValue = values[0];
+                int returnValue = values[0];
                 for (int i = 1; i < values.Count; i++)
                 {
                     if (operands[i - 1] == '+')
@@ -99,39 +93,19 @@ namespace AddingWords
                         returnValue -= values[i];
                     }
                 }
-                temp = definitions.SingleOrDefault(q => q.Value == returnValue);
-                if (temp != null)
+                if (definitions.ContainsValue(returnValue))
                 {
-                    returnKey = temp.Key;
+                    returnKey = definitions.Single(q => q.Value == returnValue).Key;
                 }
             }
 
-            if (returnKey == null)
-            {
-                returnKey = "unknown";
-            }
             for (int i = 0; i < values.Count; i++)
             {
                 builder.Append(calc[2 * i] + " ");
                 builder.Append(operands[i] + " ");
-                if (i == values.Count - 1)
-                {
-                    builder.Append(returnKey);
-                }
             }
+            builder.Append(returnKey);
             return builder.ToString();
         }
-    }
-
-    class Definition
-    {
-        public Definition(int value, string key)
-        {
-            Value = value;
-            Key = key;
-        }
-
-        public int Value { get; set; }
-        public string Key { get; set; }
     }
 }
