@@ -9,14 +9,11 @@ namespace AddingWords
     {
         static void Main(string[] args)
         {
-            var definitions = new Dictionary<string, int>();
-
+            Dictionary<string,int> definitions = new Dictionary<string, int>();
             string input;
             string[] inputs;
-            int value, i;
-            List<string> calc = new List<string>();
+            int value;
             List<int> values = new List<int>();
-            List<char> operands = new List<char>();
 
             while ((input = Console.ReadLine()) != null)
             {
@@ -42,40 +39,25 @@ namespace AddingWords
                     }
                     else
                     {
-                        i = 1;
-                        do
+                        for (int j = 1; j < inputs.Length; j += 2)
                         {
-                            calc.Add(inputs[i++]);
-
-                        } while (calc.Last() != "=");
-                        for (int j = 0; j < calc.Count; j++)
-                        {
-                            if (j % 2 == 0)
+                            if (definitions.ContainsKey(inputs[j]))
                             {
-                                if (definitions.ContainsKey(calc[j]))
-                                {
-                                    values.Add(definitions[calc[j]]);
-                                }
-                                else
-                                {
-                                    values.Add(-1001);
-                                }
+                                values.Add(definitions[inputs[j]]);
                             }
                             else
                             {
-                                operands.Add(calc[j][0]);
+                                values.Add(-1001);
                             }
                         }
-                        Console.WriteLine(MakeOutputString(values, operands, definitions, calc));
-                        calc.Clear();
+                        Console.WriteLine(MakeOutputString(values, inputs, definitions));
                         values.Clear();
-                        operands.Clear();
                     }
                 }
             }
         }
 
-        private static string MakeOutputString(List<int> values, List<char> operands, Dictionary<string, int> definitions, List<string> calc)
+        private static string MakeOutputString(List<int> values, string[] inputs, Dictionary<string, int> definitions)
         {
             StringBuilder builder = new StringBuilder();
             string returnKey = "unknown";
@@ -85,11 +67,11 @@ namespace AddingWords
                 int returnValue = values[0];
                 for (int i = 1; i < values.Count; i++)
                 {
-                    if (operands[i - 1] == '+')
+                    if (inputs[2*i] == "+")
                     {
                         returnValue += values[i];
                     }
-                    else if (operands[i - 1] == '-')
+                    else if (inputs[2*i] == "-")
                     {
                         returnValue -= values[i];
                     }
@@ -100,10 +82,9 @@ namespace AddingWords
                 }
             }
 
-            for (int i = 0; i < values.Count; i++)
+            for (int i = 1; i < inputs.Length; i++)
             {
-                builder.Append(calc[2 * i] + " ");
-                builder.Append(operands[i] + " ");
+                builder.Append(inputs[i] + " ");
             }
             builder.Append(returnKey);
             return builder.ToString();
